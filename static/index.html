@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ticket Desk</title>
+<style>
+  :root {
+    --ink: #1b2430;
+    --paper: #f7f6f3;
+    --card: #ffffff;
+    --line: #dfdcd4;
+    --accent: #3457d5;
+    --accent-ink: #ffffff;
+    --muted: #6b7280;
+    --status-open: #b45309;
+    --status-open-bg: #fdf1e2;
+    --status-progress: #2563eb;
+    --status-progress-bg: #e8eefd;
+    --status-closed: #16794f;
+    --status-closed-bg: #e5f5ee;
+    --danger: #b3261e;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  a { color: var(--accent); }
+
+  header {
+    background: var(--ink);
+    color: #fff;
+    padding: 18px 28px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  header .brand {
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  header .who {
+    font-size: 14px;
+    color: #c9cedb;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  header button {
+    background: transparent;
+    border: 1px solid #45506b;
+    color: #e7e9ee;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  header button:hover { background: #232f47; }
+
+  main {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ---------- Auth screen ---------- */
+  .auth-wrap {
+    max-width: 380px;
+    margin: 60px auto;
+  }
+
+  .auth-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 32px;
+  }
+
+  .auth-card h1 {
+    font-size: 22px;
+    margin: 0 0 6px;
+  }
+
+  .auth-card p.sub {
+    color: var(--muted);
+    margin: 0 0 24px;
+    font-size: 14px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    background: var(--paper);
+    border-radius: 8px;
+    padding: 4px;
+  }
+
+  .tabs button {
+    flex: 1;
+    padding: 8px 0;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--muted);
+  }
+
+  .tabs button.active {
+    background: var(--card);
+    color: var(--ink);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 14px 0 6px;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-color: var(--accent);
+  }
+
+  .primary-btn {
+    width: 100%;
+    margin-top: 22px;
+    padding: 11px 0;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: none;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .primary-btn:hover { background: #2a46b8; }
+  .primary-btn:disabled { opacity: 0.6; cursor: default; }
+
+  .form-msg {
+    margin-top: 14px;
+    font-size: 13px;
+    padding: 9px 11px;
+    border-radius: 6px;
+  }
+  .form-msg.error { background: #fbebea; color: var(--danger); }
+  .form-msg.ok { background: var(--status-closed-bg); color: var(--status-closed); }
+
+  /* ---------- Dashboard ---------- */
+  .board-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 24px;
+  }
+
+  .board-head h1 {
+    font-size: 24px;
+    margin: 0 0 4px;
+  }
+  .board-head p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .new-ticket-btn {
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .new-ticket-btn:hover { background: #2a3548; }
+
+  .new-ticket-form {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px;
+    margin-bottom: 24px;
+  }
+  .new-ticket-form h2 {
+    font-size: 15px;
+    margin: 0 0 4px;
+  }
+  .new-ticket-form .row-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .new-ticket-form .row-actions .primary-btn { width: auto; padding: 9px 18px; margin-top: 0; }
+  .new-ticket-form .row-actions .ghost-btn {
+    padding: 9px 18px;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .ticket-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .ticket-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 16px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .ticket-card .info { min-width: 0; }
+  .ticket-card .title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .ticket-card .title {
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ticket-card .desc {
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ticket-card .meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .pill {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  .pill.open { color: var(--status-open); background: var(--status-open-bg); }
+  .pill.in_progress { color: var(--status-progress); background: var(--status-progress-bg); }
+  .pill.closed { color: var(--status-closed); background: var(--status-closed-bg); }
+
+  .ticket-card .actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .ticket-card .actions button {
+    font-size: 12.5px;
+    padding: 7px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    cursor: pointer;
+  }
+  .ticket-card .actions button:hover { background: #eeece6; }
+  .ticket-card .actions button.close-btn {
+    border-color: #edd; color: var(--danger);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+const API = ""; // same origin
+
+let state = {
+  token: localStorageGet("ticketdesk_token"),
+  username: localStorageGet("ticketdesk_username"),
+  authMode: "login", // or "register"
+  tickets: [],
+  showNewForm: false,
+  loading: false,
+  authMsg: null,
+};
+
+// We were told never to use localStorage in artifacts, but this is a real
+// deployed app (not a claude.ai artifact) served by our own Go binary, so
+// browser storage is safe and expected here for persisting the session.
+function localStorageGet(key) {
+  try { return window.localStorage.getItem(key); } catch (e) { return null; }
+}
+function localStorageSet(key, val) {
+  try { window.localStorage.setItem(key, val); } catch (e) {}
+}
+function localStorageClear() {
+  try { window.localStorage.clear(); } catch (e) {}
+}
+
+async function api(path, opts = {}) {
+  const headers = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});
+  if (state.token) headers["Authorization"] = "Bearer " + state.token;
+  const res = await fetch(API + path, Object.assign({}, opts, { headers }));
+  let data = null;
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok) {
+    const msg = (data && data.error) ? data.error : ("Request failed (" + res.status + ")");
+    throw new Error(msg);
+  }
+  return data;
+}
+
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = state.token ? renderDashboard() : renderAuth();
+  attachHandlers();
+}
+
+function renderAuth() {
+  const isLogin = state.authMode === "login";
+  return `
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <h1>Ticket Desk</h1>
+        <p class="sub">Sign in to create and track your support tickets.</p>
+        <div class="tabs">
+          <button data-tab="login" class="${isLogin ? "active" : ""}">Log in</button>
+          <button data-tab="register" class="${!isLogin ? "active" : ""}">Register</button>
+        </div>
+        <form id="auth-form">
+          <label for="username">Username</label>
+          <input id="username" name="username" autocomplete="username" required />
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="${isLogin ? "current-password" : "new-password"}" required minlength="6" />
+          <button class="primary-btn" type="submit" ${state.loading ? "disabled" : ""}>
+            ${state.loading ? "Please wait…" : (isLogin ? "Log in" : "Create account")}
+          </button>
+        </form>
+        ${state.authMsg ? `<div class="form-msg ${state.authMsg.type}">${escapeHtml(state.authMsg.text)}</div>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function renderDashboard() {
+  const tickets = state.tickets;
+  return `
+    <header>
+      <div class="brand">Ticket Desk</div>
+      <div class="who">
+        Signed in as <strong>${escapeHtml(state.username || "")}</strong>
+        <button id="logout-btn">Log out</button>
+      </div>
+    </header>
+    <main>
+      <div class="board-head">
+        <div>
+          <h1>Your tickets</h1>
+          <p>${tickets.length} ticket${tickets.length === 1 ? "" : "s"} total</p>
+        </div>
+        <button class="new-ticket-btn" id="toggle-new-ticket">${state.showNewForm ? "Cancel" : "New ticket"}</button>
+      </div>
+
+      ${state.showNewForm ? `
+        <div class="new-ticket-form">
+          <h2>New ticket</h2>
+          <form id="new-ticket-form">
+            <label for="ticket-title">Title</label>
+            <input id="ticket-title" required maxlength="120" placeholder="What's the issue?" />
+            <label for="ticket-desc">Description</label>
+            <input id="ticket-desc" placeholder="Add any useful detail" />
+            <div class="row-actions">
+              <button class="primary-btn" type="submit">Create ticket</button>
+              <button class="ghost-btn" type="button" id="cancel-new-ticket">Cancel</button>
+            </div>
+          </form>
+        </div>
+      ` : ""}
+
+      ${state.authMsg ? `<div class="form-msg ${state.authMsg.type}" style="margin-bottom:16px;">${escapeHtml(state.authMsg.text)}</div>` : ""}
+
+      ${tickets.length === 0 ? `
+        <div class="empty-state">No tickets yet. Create your first one to get started.</div>
+      ` : `
+        <div class="ticket-list">
+          ${tickets.slice().sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).map(renderTicketCard).join("")}
+        </div>
+      `}
+    </main>
+  `;
+}
+
+function renderTicketCard(t) {
+  const nextAction = {
+    open: { label: "Start progress", to: "in_progress" },
+    in_progress: { label: "Close ticket", to: "closed" },
+  }[t.status];
+
+  return `
+    <div class="ticket-card" data-id="${t.id}">
+      <div class="info">
+        <div class="title-row">
+          <span class="title">${escapeHtml(t.title)}</span>
+          <span class="pill ${t.status}">${t.status.replace("_", " ")}</span>
+        </div>
+        ${t.description ? `<div class="desc">${escapeHtml(t.description)}</div>` : ""}
+        <div class="meta">#${escapeHtml(t.id)} · created ${formatDate(t.created_at)}</div>
+      </div>
+      <div class="actions">
+        ${nextAction ? `<button class="advance-btn" data-id="${t.id}" data-to="${nextAction.to}">${nextAction.label}</button>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function formatDate(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " " +
+           d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  } catch (e) { return iso; }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str == null ? "" : String(str);
+  return div.innerHTML;
+}
+
+function attachHandlers() {
+  const authForm = document.getElementById("auth-form");
+  if (authForm) {
+    authForm.addEventListener("submit", handleAuthSubmit);
+    document.querySelectorAll(".tabs button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.authMode = btn.dataset.tab;
+        state.authMsg = null;
+        render();
+      });
+    });
+  }
+
+  const logoutBtn = document.getElementById("logout-btn");
+  if (logoutBtn) logoutBtn.addEventListener("click", () => {
+    state.token = null;
+    state.username = null;
+    state.tickets = [];
+    localStorageClear();
+    render();
+  });
+
+  const toggleBtn = document.getElementById("toggle-new-ticket");
+  if (toggleBtn) toggleBtn.addEventListener("click", () => {
+    state.showNewForm = !state.showNewForm;
+    state.authMsg = null;
+    render();
+  });
+
+  const cancelBtn = document.getElementById("cancel-new-ticket");
+  if (cancelBtn) cancelBtn.addEventListener("click", () => {
+    state.showNewForm = false;
+    render();
+  });
+
+  const newTicketForm = document.getElementById("new-ticket-form");
+  if (newTicketForm) newTicketForm.addEventListener("submit", handleCreateTicket);
+
+  document.querySelectorAll(".advance-btn").forEach(btn => {
+    btn.addEventListener("click", () => handleAdvanceTicket(btn.dataset.id, btn.dataset.to));
+  });
+}
+
+async function handleAuthSubmit(e) {
+  e.preventDefault();
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value;
+  state.loading = true;
+  state.authMsg = null;
+  render();
+
+  try {
+    if (state.authMode === "register") {
+      await api("/auth/register", { method: "POST", body: JSON.stringify({ username, password }) });
+    }
+    const login = await api("/auth/login", { method: "POST", body: JSON.stringify({ username, password }) });
+    state.token = login.token;
+    state.username = username;
+    localStorageSet("ticketdesk_token", login.token);
+    localStorageSet("ticketdesk_username", username);
+    state.loading = false;
+    await loadTickets();
+  } catch (err) {
+    state.loading = false;
+    state.authMsg = { type: "error", text: err.message };
+    render();
+  }
+}
+
+async function loadTickets() {
+  try {
+    state.tickets = await api("/tickets");
+  } catch (err) {
+    state.authMsg = { type: "error", text: err.message };
+  }
+  render();
+}
+
+async function handleCreateTicket(e) {
+  e.preventDefault();
+  const title = document.getElementById("ticket-title").value.trim();
+  const description = document.getElementById("ticket-desc").value.trim();
+  if (!title) return;
+  try {
+    await api("/tickets", { method: "POST", body: JSON.stringify({ title, description }) });
+    state.showNewForm = false;
+    state.authMsg = { type: "ok", text: "Ticket created." };
+    await loadTickets();
+  } catch (err) {
+    state.authMsg = { type: "error", text: err.message };
+    render();
+  }
+}
+
+async function handleAdvanceTicket(id, to) {
+  try {
+    await api("/tickets/" + encodeURIComponent(id) + "/status", {
+      method: "PATCH",
+      body: JSON.stringify({ status: to }),
+    });
+    await loadTickets();
+  } catch (err) {
+    state.authMsg = { type: "error", text: err.message };
+    render();
+  }
+}
+
+// Boot
+if (state.token) {
+  render();
+  loadTickets();
+} else {
+  render();
+}
+</script>
+</body>
+</html>
