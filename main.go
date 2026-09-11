@@ -1,10 +1,24 @@
 package main
 
 import (
+	"embed"
 	"log"
 	"net/http"
 	"os"
 )
+
+//go:embed static/index.html
+var staticFiles embed.FS
+
+func handleIndex(w http.ResponseWriter, r *http.Request) {
+	data, err := staticFiles.ReadFile("static/index.html")
+	if err != nil {
+		http.Error(w, "frontend not found", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write(data)
+}
 
 // Server holds shared dependencies used by all handlers.
 type Server struct {
@@ -37,6 +51,9 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
+
+	// Frontend (simple login + ticket dashboard, served from the same binary)
+	mux.HandleFunc("GET /{$}", handleIndex)
 
 	// Public routes
 	mux.HandleFunc("GET /health", handleHealth)
